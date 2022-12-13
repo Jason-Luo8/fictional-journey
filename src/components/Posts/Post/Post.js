@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardActions,
@@ -19,6 +19,7 @@ import { deletePost, likePost } from "../../../actions/posts";
 const Post = ({ post, setCurrentId }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const [liked, setLiked] = useState(false);
 
   return (
     <Card className={classes.card}>
@@ -44,7 +45,7 @@ const Post = ({ post, setCurrentId }) => {
       </div>
       <div className={classes.details}>
         <Typography variant="body2" color="textSecondary">
-          {post.tags.map((tag) => `#${tag}`)}
+          {post.tags.map((tag) => `#${tag} `)}
         </Typography>
       </div>
       <Typography className={classes.title} variant="h5" gutterBottom>
@@ -60,10 +61,14 @@ const Post = ({ post, setCurrentId }) => {
         <Button
           size="small"
           color="primary"
-          onClick={() => dispatch(likePost(post._id))}
+          disabled={liked}
+          onClick={() => {
+            dispatch(likePost(post._id));
+            setLiked(true);
+          }}
         >
           <ThumbUpAltIcon fontSize="small" />
-          Like
+          &nbsp;Like&nbsp;
           {post.likeCount}
         </Button>
         <Button
@@ -72,7 +77,7 @@ const Post = ({ post, setCurrentId }) => {
           onClick={() => dispatch(deletePost(post._id))}
         >
           <DeleteIcon fontSize="small" />
-          Delete
+          &nbsp;Delete
         </Button>
       </CardActions>
     </Card>
