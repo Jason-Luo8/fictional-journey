@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { TextField, Button, Typography, Paper } from "@material-ui/core";
-import FileBase from "react-file-base64";
 import { useDispatch, useSelector } from "react-redux";
+import FileBase from "react-file-base64";
 
-import useStyles from "./styles";
 import { createPost, updatePost } from "../../actions/posts";
+import useStyles from "./styles";
 
 // GET THE CURRENT ID
 
 const Form = ({ currentId, setCurrentId }) => {
+  console.log(currentId);
   const [postData, setPostData] = useState({
-    creator: "",
     title: "",
     message: "",
     tags: "",
@@ -18,37 +18,50 @@ const Form = ({ currentId, setCurrentId }) => {
   });
 
   const post = useSelector((state) =>
-    currentId ? state.posts.find((p) => p._id === currentId) : null
+    currentId ? state.posts.find((message) => message._id === currentId) : null
   );
 
-  const classes = useStyles();
   const dispatch = useDispatch();
+  const classes = useStyles();
+  const user = JSON.parse(localStorage.getItem("profile"));
 
   useEffect(() => {
     if (post) setPostData(post);
   }, [post]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (currentId) {
-      dispatch(updatePost(currentId, postData));
-    } else {
-      dispatch(createPost(postData));
-    }
-    clear();
-  };
-
   const clear = () => {
-    setCurrentId(null);
+    setCurrentId(0);
     setPostData({
-      creator: "",
       title: "",
       message: "",
       tags: "",
       selectedFile: "",
     });
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!currentId) {
+      dispatch(createPost({ ...postData, name: user?.result?.name }));
+      clear();
+    } else {
+      dispatch(
+        updatePost(currentId, { ...postData, name: user?.result?.name })
+      );
+      clear();
+    }
+  };
+
+  if (!user?.result?.name) {
+    return (
+      <Paper className={classes.paper}>
+        <Typography variant="h6" align="center">
+          Please Sign In to create Snapshots and like other snapshots.
+        </Typography>
+      </Paper>
+    );
+  }
 
   return (
     <Paper className={classes.paper}>
@@ -61,17 +74,6 @@ const Form = ({ currentId, setCurrentId }) => {
         <Typography variant="h6">
           {currentId ? "Editing" : "Creating"} a Snapshot
         </Typography>
-        <TextField
-          name="creator"
-          variant="outlined"
-          label="Creator"
-          fullWidth
-          value={postData.creator}
-          onChange={(e) =>
-            setPostData({ ...postData, creator: e.target.value })
-          }
-          required
-        />
         <TextField
           name="title"
           variant="outlined"
@@ -86,6 +88,8 @@ const Form = ({ currentId, setCurrentId }) => {
           variant="outlined"
           label="Message"
           fullWidth
+          multiline
+          minRows={4}
           value={postData.message}
           onChange={(e) =>
             setPostData({ ...postData, message: e.target.value })
@@ -95,7 +99,7 @@ const Form = ({ currentId, setCurrentId }) => {
         <TextField
           name="tags"
           variant="outlined"
-          label="Tags"
+          label="Tags (comma seperated, no spaces)"
           fullWidth
           value={postData.tags}
           onChange={(e) =>
